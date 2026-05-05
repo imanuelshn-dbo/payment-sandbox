@@ -1,0 +1,406 @@
+basePath: /api/v1
+definitions:
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      role:
+        description: optional
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.Invoice:
+    properties:
+      amount:
+        format: int64
+        type: integer
+      createdAt:
+        type: string
+      expiredAt:
+        type: string
+      id:
+        type: integer
+      invoiceNumber:
+        type: string
+      paymentToken:
+        type: string
+      status:
+        description: PENDING, PAID, FAILED
+        type: string
+      userID:
+        format: int64
+        type: integer
+    type: object
+  models.Wallet:
+    properties:
+      balance:
+        format: int64
+        type: integer
+      id:
+        type: integer
+      userID:
+        type: integer
+    type: object
+  payment.CreatePaymentRequest:
+    properties:
+      payment_method:
+        type: string
+    required:
+    - payment_method
+    type: object
+  payment.UpdatePaymentStatusRequest:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  refund.CreateRefundRequest:
+    properties:
+      invoice_id:
+        type: integer
+    required:
+    - invoice_id
+    type: object
+  refund.UpdateRefundStatusRequest:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  request.CreateInvoiceRequest:
+    properties:
+      amount:
+        type: integer
+    required:
+    - amount
+    type: object
+  request.TopUpRequest:
+    properties:
+      amount:
+        type: integer
+    required:
+    - amount
+    type: object
+  request.UpdateInvoiceRequest:
+    properties:
+      amount:
+        type: integer
+    required:
+    - amount
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Mini Payment Gateway Simulation
+  title: Payment Sandbox API
+  version: "1.0"
+paths:
+  /admin/dashboard:
+    get:
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        type: integer
+      - description: Start Date
+        in: query
+        name: start_date
+        type: string
+      - description: End Date
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Admin Dashboard
+      tags:
+      - Admin
+  /admin/payment/{id}:
+    put:
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/payment.UpdatePaymentStatusRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Update Payment (Admin)
+      tags:
+      - Payment
+  /admin/refund/{id}/process:
+    put:
+      parameters:
+      - description: Refund ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Process
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/refund.UpdateRefundStatusRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Process Refund
+      tags:
+      - Refund
+  /admin/refund/{id}/status:
+    put:
+      parameters:
+      - description: Refund ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/refund.UpdateRefundStatusRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Approve/Reject Refund
+      tags:
+      - Refund
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Register
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register Merchant
+      tags:
+      - Auth
+  /merchant/invoice:
+    get:
+      parameters:
+      - description: Filter status
+        in: query
+        name: status
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List Invoice
+      tags:
+      - Invoice
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Invoice
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateInvoiceRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Invoice'
+      security:
+      - BearerAuth: []
+      summary: Create Invoice
+      tags:
+      - Invoice
+  /merchant/invoice/{id}:
+    delete:
+      parameters:
+      - description: Invoice ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Delete Invoice
+      tags:
+      - Invoice
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Invoice ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateInvoiceRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Update Invoice
+      tags:
+      - Invoice
+  /merchant/refund:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refund
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/refund.CreateRefundRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Request Refund
+      tags:
+      - Refund
+  /merchant/topup:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: TopUp
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.TopUpRequest'
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Top Up Wallet
+      tags:
+      - Wallet
+  /merchant/wallet:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Wallet'
+      security:
+      - BearerAuth: []
+      summary: Get Wallet Balance
+      tags:
+      - Wallet
+  /pay/{token}:
+    get:
+      parameters:
+      - description: Payment Token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get Public Payment Page
+      tags:
+      - Payment
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Token
+        in: path
+        name: token
+        required: true
+        type: string
+      - description: Payment
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/payment.CreatePaymentRequest'
+      responses: {}
+      summary: Create Payment
+      tags:
+      - Payment
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
