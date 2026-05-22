@@ -1,8 +1,6 @@
 package refund
 
 import (
-	apperror "payment-sandbox/pkg/app-error"
-	"payment-sandbox/pkg/utils"
 	"strconv"
 
 	"payment-sandbox/pkg/response"
@@ -29,13 +27,13 @@ func (h *Handler) Request(c *gin.Context) {
 
 	var req CreateRefundRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
 	err := h.service.RequestRefund(userID, req.InvoiceID)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
@@ -53,13 +51,13 @@ func (h *Handler) UpdateStatus(c *gin.Context) {
 
 	var req UpdateRefundStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
 	err := h.service.UpdateStatus(int64(id), req.Status)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
@@ -77,13 +75,13 @@ func (h *Handler) Process(c *gin.Context) {
 
 	var req UpdateRefundStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
 	err := h.service.ProcessRefund(int64(id), req.Status)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 

@@ -87,7 +87,7 @@ func (s *Service) UpdateStatus(id int64, status string) error {
 func (s *Service) ProcessRefund(id int64, status string) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 
-		// 🔒 LOCK REFUND
+		// LOCK REFUND
 		var refund models.Refund
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			First(&refund, id).Error; err != nil {
@@ -95,7 +95,7 @@ func (s *Service) ProcessRefund(id int64, status string) error {
 			return err
 		}
 
-		// ✅ STATE MACHINE
+		// STATE MACHINE
 		switch refund.Status {
 		case "APPROVED":
 			if status != "SUCCESS" && status != "FAILED" {
@@ -124,7 +124,7 @@ func (s *Service) ProcessRefund(id int64, status string) error {
 			}
 
 			if wallet.Balance < refund.Amount {
-				return errors.New("insufficient balance")
+				return apperror.BadRequest("insufficient balance")
 			}
 
 			wallet.Balance -= refund.Amount

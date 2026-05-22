@@ -1,8 +1,6 @@
 package payment
 
 import (
-	apperror "payment-sandbox/pkg/app-error"
-	"payment-sandbox/pkg/utils"
 	"strconv"
 
 	"payment-sandbox/pkg/response"
@@ -28,7 +26,7 @@ func (h *Handler) GetInvoice(c *gin.Context) {
 
 	inv, err := h.service.GetInvoiceByToken(token)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
@@ -46,19 +44,19 @@ func (h *Handler) Pay(c *gin.Context) {
 
 	var req CreatePaymentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
 	inv, err := h.service.GetInvoiceByToken(token)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
 	err = h.service.CreatePayment(inv.ID, req.PaymentMethod)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
@@ -76,13 +74,13 @@ func (h *Handler) Update(c *gin.Context) {
 
 	var req UpdatePaymentStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
 	err := h.service.UpdatePayment(int64(id), req.Status)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 

@@ -1,9 +1,9 @@
 package apperror
 
 type AppError struct {
-	Code    int               `json:"-"`
-	Message string            `json:"message"`
-	Errors  map[string]string `json:"errors,omitempty"`
+	Code    int         `json:"-"`
+	Message string      `json:"message"`
+	Errors  interface{} `json:"errors,omitempty"`
 }
 
 func (e *AppError) Error() string {
@@ -39,6 +39,14 @@ func Validation(errs map[string]string) *AppError {
 	return &AppError{
 		Code:    400,
 		Message: "validation error",
+		Errors:  errs,
+	}
+}
+
+func BadRequestWithError(message string, errs interface{}) *AppError {
+	return &AppError{
+		Code:    400,
+		Message: message,
 		Errors:  errs,
 	}
 }

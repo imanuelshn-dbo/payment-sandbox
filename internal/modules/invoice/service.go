@@ -3,6 +3,7 @@ package invoice
 import (
 	"fmt"
 	"payment-sandbox/internal/logger"
+	"payment-sandbox/internal/models/request"
 	apperror "payment-sandbox/pkg/app-error"
 	"time"
 
@@ -20,14 +21,14 @@ func NewService(db *gorm.DB) *Service {
 	return &Service{db}
 }
 
-func (s *Service) CreateInvoice(userID int64, amount int64) (*models.Invoice, error) {
+func (s *Service) CreateInvoice(userID int64, req request.CreateInvoiceRequest) (*models.Invoice, error) {
 	invoice := models.Invoice{
 		UserID:        userID,
 		InvoiceNumber: generateInvoiceNumber(),
-		Amount:        amount,
+		Amount:        req.Amount,
 		Status:        "PENDING",
 		PaymentToken:  uuid.New().String(),
-		ExpiredAt:     time.Now().Add(24 * time.Hour),
+		ExpiredAt:     req.ExpiredAt,
 	}
 
 	err := s.db.Create(&invoice).Error
@@ -42,7 +43,7 @@ func (s *Service) CreateInvoice(userID int64, amount int64) (*models.Invoice, er
 		userID,
 		invoice.ID,
 		map[string]interface{}{
-			"amount": amount,
+			"amount": req.Amount,
 		},
 	)
 

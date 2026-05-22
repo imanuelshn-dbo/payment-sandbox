@@ -2,10 +2,8 @@ package invoice
 
 import (
 	"payment-sandbox/internal/models/request"
-	apperror "payment-sandbox/pkg/app-error"
 	"payment-sandbox/pkg/pagination"
 	"payment-sandbox/pkg/response"
-	"payment-sandbox/pkg/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -31,13 +29,13 @@ func (h *Handler) Create(c *gin.Context) {
 
 	var req request.CreateInvoiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
-	invoice, err := h.service.CreateInvoice(userID, req.Amount)
+	invoice, err := h.service.CreateInvoice(userID, req)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
@@ -60,7 +58,7 @@ func (h *Handler) List(c *gin.Context) {
 
 	data, total, err := h.service.ListInvoice(userID, status, p.Page, p.Limit)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
@@ -86,13 +84,13 @@ func (h *Handler) Update(c *gin.Context) {
 
 	var req request.UpdateInvoiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
 	invoice, err := h.service.UpdateInvoice(userID, int64(id), req.Amount)
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 
@@ -111,7 +109,7 @@ func (h *Handler) Delete(c *gin.Context) {
 
 	err := h.service.DeleteInvoice(userID, int64(id))
 	if err != nil {
-		c.Error(apperror.Validation(utils.FormatValidationError(err)))
+		c.Error(err)
 		return
 	}
 

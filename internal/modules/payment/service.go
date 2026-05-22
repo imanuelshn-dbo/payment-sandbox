@@ -29,6 +29,21 @@ func (s *Service) GetInvoiceByToken(token string) (*models.Invoice, error) {
 
 // CREATE PAYMENT INTENT
 func (s *Service) CreatePayment(invoiceID int64, method string) error {
+	var invoice models.Invoice
+	if err := s.db.First(&invoice, invoiceID).Error; err != nil {
+		return apperror.BadRequest("invoice not found")
+	}
+
+	// CHECK INVOICE STATUS
+	if invoice.Status != "PENDING" {
+		return apperror.BadRequest("invoice already processed")
+	}
+
+	// CHECK EXPIRED TIME
+	if time.Now().After(invoice.ExpiredAt) {
+		return apperror.BadRequest("invoice expired")
+	}
+
 	intent := models.PaymentIntent{
 		InvoiceID:     invoiceID,
 		PaymentMethod: method,
@@ -42,7 +57,7 @@ func (s *Service) CreatePayment(invoiceID int64, method string) error {
 func (s *Service) UpdatePayment(id int64, status string) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 
-		// 🔒 LOCK PAYMENT INTENT
+		// LOCK PAYMENT INTENT
 		var intent models.PaymentIntent
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			First(&intent, id).Error; err != nil {
@@ -50,12 +65,12 @@ func (s *Service) UpdatePayment(id int64, status string) error {
 			return err
 		}
 
-		// ✅ STATUS CHECK
+		// STATUS CHECK
 		if intent.Status != "PENDING" {
 			return errors.New("payment already processed")
 		}
 
-		// 🔒 LOCK INVOICE
+		// LOCK INVOICE
 		var invoice models.Invoice
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			First(&invoice, intent.InvoiceID).Error; err != nil {
@@ -131,7 +146,16 @@ func (s *Service) UpdatePayment(id int64, status string) error {
 				}
 
 				if wallet.Balance < invoice.Amount {
-					return errors.New("insufficient balance")
+					// masuk error ini
+					if wallet.Balance < invoice.Amount {
+						return apperror.BadRequestWithError(
+							"insufficient balance",
+							map[string]interface{}{
+								"wallet_balance": wallet.Balance,
+								"invoice_amount": invoice.Amount,
+							},
+						)
+					}
 				}
 
 				wallet.Balance -= invoice.Amount
