@@ -39,6 +39,11 @@ func (s *Service) CreatePayment(invoiceID int64, method string) error {
 		return apperror.BadRequest("invoice already processed")
 	}
 
+	// RETRY PAYMENT
+	if invoice.Status == "PAID" {
+		return apperror.BadRequest("invoice already paid")
+	}
+
 	// CHECK EXPIRED TIME
 	if time.Now().After(invoice.ExpiredAt) {
 		return apperror.BadRequest("invoice expired")
